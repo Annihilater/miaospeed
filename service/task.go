@@ -3,12 +3,12 @@ package service
 import (
 	"time"
 
-	"github.com/miaokobot/miaospeed/service/taskpoll"
-	"github.com/miaokobot/miaospeed/utils"
+	"github.com/airportr/miaospeed/service/taskpoll"
+	"github.com/airportr/miaospeed/utils"
 )
 
-var SpeedTaskPoll *taskpoll.TaskPollController
-var ConnTaskPoll *taskpoll.TaskPollController
+var SpeedTaskPoll *taskpoll.TPController
+var ConnTaskPoll *taskpoll.TPController
 
 func StartTaskServer() {
 	SpeedTaskPoll = taskpoll.NewTaskPollController("SpeedPoll", 1, time.Duration(utils.GCFG.PauseSecond)*time.Second, 200*time.Millisecond)

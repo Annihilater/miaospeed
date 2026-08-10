@@ -1,16 +1,17 @@
 package macros
 
 import (
-	"github.com/miaokobot/miaospeed/interfaces"
-	"github.com/miaokobot/miaospeed/utils/structs"
+	"github.com/airportr/miaospeed/interfaces"
+	"github.com/airportr/miaospeed/service/macros/hijack"
+	"github.com/airportr/miaospeed/utils/structs"
 
-	"github.com/miaokobot/miaospeed/service/macros/geo"
-	"github.com/miaokobot/miaospeed/service/macros/ping"
-	"github.com/miaokobot/miaospeed/service/macros/script"
-	"github.com/miaokobot/miaospeed/service/macros/speed"
-	"github.com/miaokobot/miaospeed/service/macros/udp"
-
-	"github.com/miaokobot/miaospeed/service/macros/invalid"
+	"github.com/airportr/miaospeed/service/macros/geo"
+	"github.com/airportr/miaospeed/service/macros/invalid"
+	"github.com/airportr/miaospeed/service/macros/ping"
+	"github.com/airportr/miaospeed/service/macros/script"
+	"github.com/airportr/miaospeed/service/macros/sleep"
+	"github.com/airportr/miaospeed/service/macros/speed"
+	"github.com/airportr/miaospeed/service/macros/udp"
 )
 
 var registeredList = map[interfaces.SlaveRequestMacroType]func() interfaces.SlaveRequestMacro{
@@ -26,9 +27,10 @@ var registeredList = map[interfaces.SlaveRequestMacroType]func() interfaces.Slav
 	interfaces.MacroGeo: func() interfaces.SlaveRequestMacro {
 		return &geo.Geo{}
 	},
-	interfaces.MacroScript: func() interfaces.SlaveRequestMacro {
-		return &script.Script{}
-	},
+	interfaces.MacroScript:      func() interfaces.SlaveRequestMacro { return &script.Script{} },
+	interfaces.MacroSleep:       func() interfaces.SlaveRequestMacro { return &sleep.Sleep{} },
+	interfaces.MacroUploadSpeed: func() interfaces.SlaveRequestMacro { return &speed.UploadSpeed{} },
+	interfaces.MacroHijack:      func() interfaces.SlaveRequestMacro { return &hijack.Hijack{} },
 }
 
 func Find(macroType interfaces.SlaveRequestMacroType) interfaces.SlaveRequestMacro {

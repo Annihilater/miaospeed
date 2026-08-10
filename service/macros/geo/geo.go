@@ -4,8 +4,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/miaokobot/miaospeed/interfaces"
-	"github.com/miaokobot/miaospeed/utils"
+	"github.com/airportr/miaospeed/interfaces"
+	"github.com/airportr/miaospeed/utils"
 )
 
 func RemoteLookup(p interfaces.Vendor, script string, retry int) *interfaces.IPStacks {
@@ -80,12 +80,17 @@ func DetectingSource(p interfaces.Vendor, script string, retry int, queryServers
 			IPv6Stack: make([]*interfaces.GeoInfo, 0),
 			MainStack: &interfaces.GeoInfo{},
 		}
+		var pcopy interfaces.Vendor = nil
+		// if count > 0 , it means the current proxy is valid.
+		if out != nil && out.Count() > 0 {
+			pcopy = p
+		}
 
 		for _, ip := range ipv4 {
-			in.IPv4Stack = append(in.IPv4Stack, RunGeoCheck(nil, script, ip, retry, "tcp"))
+			in.IPv4Stack = append(in.IPv4Stack, RunGeoCheck(pcopy, script, ip, retry, "tcp"))
 		}
 		for _, ip := range ipv6 {
-			in.IPv6Stack = append(in.IPv6Stack, RunGeoCheck(nil, script, ip, retry, "tcp"))
+			in.IPv6Stack = append(in.IPv6Stack, RunGeoCheck(pcopy, script, ip, retry, "tcp"))
 		}
 
 		if in.Count() > 0 {

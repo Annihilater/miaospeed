@@ -18,10 +18,39 @@ type MaxSpeedDS struct {
 	Value uint64
 }
 
+type MaxRTTDS struct {
+	Value uint16
+}
+
+type HTTPStatusCodeDS struct {
+	Values []int
+}
+type MaxHTTPDS struct {
+	Value uint16
+}
+
+type SDRTTDS struct {
+	Value float64
+}
+type SDHTTPDS struct {
+	Value float64
+}
+type PacketLossDS struct {
+	Value float64
+}
+
 type PerSecondSpeedDS struct {
 	Max     uint64
 	Average uint64
 	Speeds  []uint64
+}
+
+type TotalRTTDS struct {
+	Values []uint16
+}
+
+type TotalHTTPDS struct {
+	Values []uint16
 }
 
 type UDPTypeDS struct {
@@ -39,4 +68,9 @@ type InboundGeoIPDS struct {
 
 type OutboundGeoIPDS struct {
 	MultiStacks
+}
+
+type HijackDS struct {
+	SpeedIP string
+	RealIP  string
 }

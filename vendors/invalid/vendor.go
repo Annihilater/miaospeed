@@ -3,13 +3,18 @@ package invalid
 import (
 	"context"
 	"fmt"
+	"github.com/metacubex/mihomo/constant"
 	"net"
 
-	"github.com/miaokobot/miaospeed/interfaces"
+	"github.com/airportr/miaospeed/interfaces"
 )
 
 type Invalid struct {
 	name string
+}
+
+func (c *Invalid) Proxy() constant.Proxy {
+	return nil
 }
 
 func (c *Invalid) Type() interfaces.VendorType {

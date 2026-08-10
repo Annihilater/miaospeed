@@ -1,0 +1,84 @@
+name: build and releases
+on:
+  push:
+    branches:
+      - "build"
+  workflow_dispatch:
+    
+
+jobs:
+  go-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get the tag
+        run: echo "The tag is ${{ github.ref_name }}"
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: fix embeded
+        run: |
+          go env
+          mkdir ./preconfigs/embeded/miaokoCA
+          echo "${{ secrets.MIAOSPEED_CRT }}" > ./preconfigs/embeded/miaokoCA/miaoko.crt
+          echo "${{ secrets.MIAOSPEED_KEY }}" > ./preconfigs/embeded/miaokoCA/miaoko.key
+          echo "${{ secrets.MS_BUILDTOKEN }}" > ./utils/embeded/BUILDTOKEN.key
+          head -n 5 ./engine/embeded/default_geoip.js
+
+      - name: build
+        run: make releases
+
+      - name: Release to current repository
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./bin/*
+          body_path: './CHANGELOG.md'
+          tag_name: ${{ github.ref_name }}
+          token: ${{ secrets.MIAOSPEED_REPO_TOKEN }}
+
+      # 发布到另一个仓库 - 使用softprops/action-gh-release
+      - name: Release to another repository
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./bin/*
+          body_path: './CHANGELOG.md'
+          tag_name: ${{ github.ref_name }}
+          repository: AirportR/miaospeed
+          token: ${{ secrets.MIAOSPEED_REPO_TOKEN }}
+
+      - name: Get the tag
+        run: |
+          echo "MIAOSPEED_TAG=$(curl -s https://api.github.com/repos/AirportR/miaospeed/releases/latest | grep 'tag_name' | cut -d '"' -f 4)" >> $GITHUB_ENV
+          echo "The tag is ${{ github.ref_name }}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/miaospeed:${{ env.MIAOSPEED_TAG }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/miaospeed:latest
+          platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm64/v8
+
+      - name: Logout from Docker Hub
+        run: docker logout

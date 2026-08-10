@@ -6,12 +6,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/miaokobot/miaospeed/utils"
+	"github.com/airportr/miaospeed/utils"
+	mihomoDialer "github.com/metacubex/mihomo/component/dialer"
 )
 
-var cmdName string = "miaospeed"
-
-const logo string = " __  __ _            ____                      _ \n|  \\/  (_) __ _  ___/ ___| _ __   ___  ___  __| |\n| |\\/| | |/ _` |/ _ \\___ \\| '_ \\ / _ \\/ _ \\/ _` |\n| |  | | | (_| | (_) |__) | |_) |  __/  __/ (_| |\n|_|  |_|_|\\__,_|\\___/____/| .__/ \\___|\\___|\\__,_|\n                          |_|                    "
+var cmdName = "miaospeed"
 
 type SubCliType string
 
@@ -47,7 +46,7 @@ func RunCliDefault() {
 	sflag.Parse(os.Args[1:])
 
 	if *versionOnly {
-		fmt.Println(logo)
+		fmt.Println(utils.LOGO)
 		fmt.Printf("version: %s\n", utils.VERSION)
 		fmt.Printf("commit: %s\n", utils.COMMIT)
 		fmt.Printf("compilation time: %s\n", utils.COMPILATIONTIME)
@@ -71,10 +70,22 @@ func RunCliDefault() {
 
 func parseFlag(sflag *flag.FlagSet) {
 	verboseMode := sflag.Bool("verbose", false, "whether to print out systems log")
+	sflag.StringVar(&utils.GCFG.NetworkInterface, "interface", "", "specify outbound network interface name")
+	sflag.StringVar(&utils.GCFG.NetworkInterface, "i", "", "alias of -interface")
 
 	sflag.Parse(os.Args[2:])
 
 	if *verboseMode {
 		utils.VerboseLevel = utils.LTLog
+	}
+
+	if err := utils.ValidateNetworkInterface(utils.GCFG.NetworkInterface); err != nil {
+		utils.DErrorf("MiaoSpeed CLI | %s", err.Error())
+		os.Exit(1)
+	} else if utils.GCFG.NetworkInterface != "" {
+		mihomoDialer.DefaultInterface.Store(utils.GCFG.NetworkInterface)
+		utils.DWarnf("MiaoSpeed CLI | Outbound interface set to: %s", utils.GCFG.NetworkInterface)
+	} else {
+		mihomoDialer.DefaultInterface.Store("")
 	}
 }

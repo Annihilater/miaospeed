@@ -1,20 +1,26 @@
 package utils
 
 import (
-	"github.com/miaokobot/miaospeed/interfaces"
-	"github.com/miaokobot/miaospeed/utils/structs"
+	"github.com/airportr/miaospeed/interfaces"
+	"github.com/airportr/miaospeed/utils/structs"
 )
 
 type GlobalConfig struct {
-	Token            string
-	Binder           string
-	WhiteList        []string
-	SpeedLimit       uint64
-	PauseSecond      uint
-	ConnTaskTreading uint
-	MiaoKoSignedTLS  bool
-	NoSpeedFlag      bool
-	MaxmindDB        string
+	Token                 string
+	Binder                string
+	NetworkInterface      string
+	WhiteList             []string
+	AllowIPs              []string
+	SpeedLimit            uint64
+	TaskLimit             uint
+	PauseSecond           uint
+	ConnTaskTreading      uint
+	MiaoKoSignedTLS       bool
+	NoSpeedFlag           bool
+	EnableUploadSpeedFlag bool
+	EnableIPv6            bool
+	MaxmindDB             string
+	Path                  string
 }
 
 func (gc *GlobalConfig) InWhiteList(invoker string) bool {
@@ -31,6 +37,11 @@ func (gc *GlobalConfig) VerifyRequest(req *interfaces.SlaveRequest) bool {
 
 func (gc *GlobalConfig) SignRequest(req *interfaces.SlaveRequest) string {
 	return SignRequest(gc.Token, req)
+}
+
+func (gc *GlobalConfig) ValidateWSPath(path string) bool {
+	DBlackholef("Path to the websocket to be validated: %s, Predefined websocket path: %s\n", path, gc.Path)
+	return path == gc.Path
 }
 
 var GCFG GlobalConfig

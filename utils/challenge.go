@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"strings"
 
+	"github.com/airportr/miaospeed/interfaces"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/miaokobot/miaospeed/interfaces"
 )
 
 // aws-v4-signature-like signing method
@@ -34,14 +34,38 @@ func hashMiaoSpeed(token, request string) string {
 //	return hex.EncodeToString(hasher.Sum(nil))
 //}
 
-func SignRequest(token string, req *interfaces.SlaveRequest) string {
+func SignRequestV1(token string, req *interfaces.SlaveRequestV1) string {
 	awaitSigned := req.Clone()
 	awaitSigned.Challenge = ""
-	if awaitSigned.RandomSequence == "" {
-		awaitSigned.Configs.Scripts = make([]interfaces.Script, 0) // 这个地方为FullTClash独家修改，因为json反序列化很容易将主端发送过来的数据改动，所以只好置为空
+	if req.RandomSequence == "" {
+		DWarn("MiaoServer compatibility deprecation: this change will be deprecated in future versions. Please upgrade your client version.")
+		awaitSigned.Configs.Scripts = make([]interfaces.Script, 0) // fulltclash Premium兼容性修改，fulltclash即将弃用
 		awaitSigned.Nodes = make([]interfaces.SlaveRequestNode, 0) // 同上
 	}
 	awaitSignedStr, _ := jsoniter.MarshalToString(&awaitSigned) //序列化
 	awaitSignedStr = strings.TrimSpace(awaitSignedStr)          //去除多余空格
 	return hashMiaoSpeed(token, awaitSignedStr)
+}
+
+func SignRequestV2(token string, req *interfaces.SlaveRequestV2) string {
+	awaitSigned := req.Clone()
+	awaitSigned.Challenge = ""
+	awaitSignedStr, _ := jsoniter.MarshalToString(&awaitSigned) //序列化
+	awaitSignedStr = strings.TrimSpace(awaitSignedStr)          //去除多余空格
+	return hashMiaoSpeed(token, awaitSignedStr)
+}
+func SignRequest(token string, req *interfaces.SlaveRequest) string {
+	if req.Configs.ApiVersion == interfaces.ApiV0 || req.Configs.ApiVersion == interfaces.ApiV1 {
+		return SignRequestV1(token, req.CloneToV1())
+	} else if req.Configs.ApiVersion == interfaces.ApiV2 {
+		return SignRequestV2(token, req.CloneToV2())
+	} else if req.Configs.ApiVersion == interfaces.ApiV3 {
+		awaitSigned := req.Clone()
+		awaitSigned.Challenge = ""
+		awaitSignedStr, _ := jsoniter.MarshalToString(&awaitSigned)
+		awaitSignedStr = strings.TrimSpace(awaitSignedStr)
+		return hashMiaoSpeed(token, awaitSignedStr)
+	} else {
+		return RandomUUID() // 不应该执行到此分支
+	}
 }

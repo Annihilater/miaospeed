@@ -1,11 +1,15 @@
 package persecondspeed
 
 import (
-	"github.com/miaokobot/miaospeed/interfaces"
-	"github.com/miaokobot/miaospeed/service/macros/speed"
+	"github.com/airportr/miaospeed/interfaces"
+	"github.com/airportr/miaospeed/service/macros/speed"
 )
 
 type PerSecondSpeed struct {
+	interfaces.PerSecondSpeedDS
+}
+
+type PerSecondUploadSpeed struct {
 	interfaces.PerSecondSpeedDS
 }
 
@@ -19,6 +23,22 @@ func (m *PerSecondSpeed) MacroJob() interfaces.SlaveRequestMacroType {
 
 func (m *PerSecondSpeed) Extract(entry interfaces.SlaveRequestMatrixEntry, macro interfaces.SlaveRequestMacro) {
 	if mac, ok := macro.(*speed.Speed); ok {
+		m.Speeds = mac.Speeds[:]
+		m.Average = mac.AvgSpeed
+		m.Max = mac.MaxSpeed
+	}
+}
+
+func (m *PerSecondUploadSpeed) Type() interfaces.SlaveRequestMatrixType {
+	return interfaces.MatrixPerSecondUploadSpeed
+}
+
+func (m *PerSecondUploadSpeed) MacroJob() interfaces.SlaveRequestMacroType {
+	return interfaces.MacroUploadSpeed
+}
+
+func (m *PerSecondUploadSpeed) Extract(entry interfaces.SlaveRequestMatrixEntry, macro interfaces.SlaveRequestMacro) {
+	if mac, ok := macro.(*speed.UploadSpeed); ok {
 		m.Speeds = mac.Speeds[:]
 		m.Average = mac.AvgSpeed
 		m.Max = mac.MaxSpeed
